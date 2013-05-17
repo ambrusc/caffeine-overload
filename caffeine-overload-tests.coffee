@@ -17,6 +17,7 @@ class TestTests extends over.TestSuite
 
 class Tests extends over.TestSuite
     TestExceptions: () ->
+        @Assert(Exception, "Must have Exception class")
         class TestEx extends Exception
         class TestEx2 extends TestEx
         @Assert(new TestEx2() instanceof Error)
@@ -36,9 +37,16 @@ class Tests extends over.TestSuite
         for n in [-1232543543.999,-1.00000000001,-1.1,1.1,1.0000001,1234939429.999]
             @Assert(not n.IsInt())
 
-    TestIterables: () ->
-        @AssertThrows(BadAssumptionException, () ->
-            n = new over.ArrayIterable().MoveNext()
-        )
+    TestString: () ->
+        s = "Hello world"
+        @Assert(s.StartsWith("Hell"))
+        @Assert(not s.StartsWith("hell"))
+        @Assert(not s.StartsWith("f"))
+        @AssertThrows(BadAssumptionException, () -> s.StartsWith(""))
+
+    # TestIterables: () ->
+        # @AssertThrows(BadAssumptionException, () ->
+        #     n = new over.ArrayIterable().MoveNext()
+        # )
 
 new Tests().Run()
