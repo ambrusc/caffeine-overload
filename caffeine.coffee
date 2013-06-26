@@ -1,46 +1,112 @@
 #
-# Copyright (c) 2013 Ambrus Csaszar
-# Distributed as-is without warranty for any purpose. Do not reproduce.
+# *Copyright &copy; 2013 Ambrus Csaszar*
 #
+# Provides a set of basic utilities for  
+#
+#  * [Exceptions](#exceptions)
+#  * [Assumptions](#assumptions)
+#  * [Numbers](#numbers)
+#  * [Unit Testing](#unittesting)
 
-# EXCEPTION BASE
+# <a id="exceptions"/>
+# EXCEPTIONS
+# ---
 
+# We create a base class for OO-style exceptions, since Error objects don't
+# generally work cross-platform with `instanceof` checks.
 class Exception extends Error
-    # Constructor is necessary to make inheritance work in coffeescript
+    # The constructor is necessary to make inheritance work properly.
     constructor: (msg) ->
         @name = @constructor.name
         @message = msg
         Error.captureStackTrace(@, @constructor)
 
 
+# <a id="assumptions"/>
+# ASSUMPTIONS
+# ---
+# Before executing a function it's often useful to validate its preconditions.
+
+# We provide a static class to encapsulate such checks.
+class Assume
+
+    # Failed assumptions throw `Assume.Exception`
+    @Exception: class AssumeException extends Exception
+
+    # The utility constructor calls the basic check, so you can write
+    # `Assume ...` instead of having to write `Assume.True ...`
+    constructor: (val, msg) -> Assume.True val, msg
+
+    # The most basic assumption checks for truthiness.
+    @True: (val, msg) ->
+        if not val
+            if not msg
+                msg = "Expected a truthy value - got '#{val}'"
+            throw new Assume.Exception msg
+
+    # Assume a value exists.
+    @Exists: (val, msg) -> 
+        Assume val != undefined and val != null, "Expected a value - got '#{val}'"
+
+    # Assume two values are equal.
+    @Equal: (a, b, msg) -> Assume a == b, "Expected '#{a}' == '#{b}'"
+
+
+# <a id="numbers"/>
+# NUMBERS
+# ---
+
+# It's useful to know some basic things about numbers.
+class Num
+    @IsInt: (n) ->
+        return Math.floor(n) == +n
+    @IsFloat: (n) ->
+        return not Num.IsInt n
+    @IsEven: (n) ->
+        Assume.True Num.IsInt(n), "Expected an Integer - got '#{n}'"
+        return n % 2 == 0 
+    @IsOdd: (n) ->
+        return not Num.IsEven n
+
+
+# <a id="unittesting"/>
 # UNIT TESTING
+# ---
 
-class AssertionException extends Exception
-    constructor: ->
-        super
-        stack_toks = @stack.split("\n")
-        if stack_toks[1].indexOf("TestSuite.Assert") > -1
-            stack_toks.splice(1, 1)
-            @stack = stack_toks.join("\n")
-
+# Write unit tests by extending TestSuite with methods prefixed with `Test`...
 class TestSuite
+
+    # Failed Assertions throw TestSuite.Exception
+    @Exception: class TestSuiteException extends Exception
+        constructor: ->
+            super
+            # We strip off the helper function portions of the stack trace
+            stack_toks = @stack.split("\n")
+            if stack_toks[1].indexOf("TestSuite.Assert") > -1
+                stack_toks.splice(1, 1)
+                @stack = stack_toks.join("\n")
+
+    # The most basic Assertion tests for truthiness of `cond`.
     Assert: (cond, msg) ->
         if not cond
             if not msg
                 msg = "Condition was '#{cond}'"
-            throw new AssertionException(msg)
+            throw new TestSuite.Exception(msg)
 
+    # We can also assert that a `func` throws a particular class of Exception.
     AssertThrows: (exceptionClass, func) ->
         threw = false
         try
             func()
-            throw new AssertionException("Expected an exception")
+            throw new TestSuite.Exception("Expected an exception")
         catch e
             if e instanceof exceptionClass
                 threw = true
         if not threw
-            throw new AssertionException("Expected an exception")
+            throw new TestSuite.Exception("Expected an exception")
 
+    # Execute the unit tests defined in this test suite and output results to
+    # the console.
     Run: () ->
         for k,v of @
             if k.toLowerCase().lastIndexOf("test", 0) == 0
@@ -50,7 +116,7 @@ class TestSuite
                         v.bind(@)()
                         console.log "ok     #{name}"
                     catch e
-                        if e instanceof AssertionException
+                        if e instanceof TestSuite.Exception
                             console.log "FAILED #{name}"
                         else
                             console.log "ERROR  #{name}"
@@ -59,61 +125,7 @@ class TestSuite
                     console.warn "!!!    #{name} is prefixed with 'test' but isn't a function. This is discouraged"
 
 
-# ASSUMPTIONS
+# Public API
+# ---
 
-class BadAssumptionException extends Exception
-
-Assume = (val, msg) ->
-    if not val
-        throw new BadAssumptionException(msg)
-
-
-# NUMBERS
-
-class Num
-    @IsInt: (n) ->
-        return Math.floor(n) == +n
-    @IsFloat: (n) ->
-        return !Num.IsInt(n)
-    @IsEven: (n) ->
-        Assume(Num.IsInt(n), "input must be an integer - was '#{n}'")
-        return n % 2 == 0 
-    @IsOdd: (n) ->
-        return !Num.IsEven(n)
-
-
-# ITERABLES
-
-# class Iterable
-#     MoveNext: () ->
-#         throw new BadAssumptionException(
-#             "#{@constructor.name} derived class must implement MoveNext")
-
-# class ArrayIterable extends Iterable
-#     constructor: (@arr) ->
-#         Assume(arr instanceof Array, "input to #{@constructor.name} must be an Array")
-#         @i = -1
-#         @CurrentValue = undefined
-#     MoveNext: () ->
-#         @i++
-#         @CurrentValue = @arr[@i]
-#         return Boolean(@i < @arr.length)
-#     Get: (i) ->
-#         return 
-
-# class SelectExpr extends Iterable
-
-# EXPORTS
-
-# This is pretty gross....
-module.exports =
-    # Exception Base
-    Exception: Exception
-    # Testing
-    AssertionException: AssertionException
-    TestSuite: TestSuite
-    # Assumptions
-    BadAssumptionException: BadAssumptionException
-    Assume: Assume
-    # Numbers
-    Num: Num
+module.exports = Caffeine = { Assume, Exception, Num, TestSuite }
