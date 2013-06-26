@@ -7,9 +7,7 @@ exposed through a commonjs module. Its niceties are optimized for CoffeeScript.
 Exceptions
 ---
 Caffeine provides the extensible `Exception` class that captures stack trace
-and succeeeds in instancesof inheritance checks in most browsers.
-*If you find a case where this is not true, send me a pull request or just let
-me know*
+and succeeeds in `instancesof` inheritance checks in most browsers.
 
     class MyException extends caff.Exception
 
@@ -24,7 +22,7 @@ Assumptions
 ---
 Programming errors can lead to precondition violations when executing functions,
 resulting in hard-to-find bugs. Caffeine provides a simple API for validating
-precondition at runtime, allowing the developer to surface these bugs early.
+preconditions at runtime, allowing the developer to surface these bugs early.
 
 You can append an execption message to use, should the assumption fail.
 
@@ -37,7 +35,7 @@ You can append an execption message to use, should the assumption fail.
 
 Numbers
 ---
-Some simple checks are implented for numbers
+Some simple checks are implented for numbers.
  * Num.IsFloat
  * Num.IsInt
  * Num.IsEven
@@ -59,3 +57,4 @@ Assumptions.
             @AssertThrows MyException, bad            # This will pass just fine
             @AssertThrows MyException, good           # This will fail
 
+    new MyTest().Run()  # outputs results to console
