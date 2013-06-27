@@ -28,7 +28,7 @@ You can append an execption message to use, should the assumption fail.
 
     assume = caff.Assume
     assume true, "I should not throw"           # okay
-    assume false, "I expected a true value"     # throws caff.Assume.Exception
+    assume false, "I expected a true value"     # throws caff.AssumptionException
 
     assume.Exists var                   # throws if 'var' is undefined or null
     assume.Equal a, b                   # throws if a != b
@@ -49,7 +49,7 @@ Assumptions.
     class MyTest extends caff.TestSuite
         TestSomething: () ->
             @Assert true
-            @Assert false, "some message"    # I'll throw a caff.TestSuite.Exception
+            @Assert false, "some message"    # I'll throw a caff.TestException
 
             bad = () -> throw new MyException "boo!"
             good = () -> console.log "I have a halo"

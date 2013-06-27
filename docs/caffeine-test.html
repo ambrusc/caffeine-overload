@@ -54,7 +54,7 @@
             </div>
             
             <div class="content"><div class='highlight'><pre>
-caff = require <span class="string">"./caffeine"</span>
+caff = require <span class="string">"./caffeine.coffee"</span>
 
 Exception = caff.Exception
 Assume = caff.Assume
@@ -81,7 +81,7 @@ Num = caff.Num</pre></div></div>
     Testtoo: []
     teStcar: {}
 
-<span class="class"><span class="keyword">class</span> <span class="title">Tests</span> <span class="keyword">extends</span> <span class="title">caff</span>.<span class="title">TestSuite</span></span></pre></div></div>
+<span class="class"><span class="keyword">class</span> <span class="title">CaffeineTests</span> <span class="keyword">extends</span> <span class="title">caff</span>.<span class="title">TestSuite</span></span></pre></div></div>
             
         </li>
         
@@ -116,9 +116,38 @@ Num = caff.Num</pre></div></div>
             <span class="property">@Assert</span> <span class="keyword">not</span> Num.IsEven n
             <span class="property">@Assert</span> Num.IsOdd n
         <span class="keyword">for</span> n <span class="keyword">in</span> [-<span class="number">1232543543.999</span>,-<span class="number">1.00000000001</span>,-<span class="number">1.1</span>,<span class="number">1.1</span>,<span class="number">1.0000001</span>,<span class="number">1234939429.999</span>]
-            <span class="property">@Assert</span> <span class="keyword">not</span> Num.IsInt n
+            <span class="property">@Assert</span> <span class="keyword">not</span> Num.IsInt n</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Export the tests publicly</p>
 
-<span class="keyword">new</span> Tests().Run()</pre></div></div>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>module.exports = { CaffeineTests }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>And run them if we&#39;re in Node</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">if</span> <span class="keyword">not</span> window?
+    <span class="keyword">new</span> CaffeineTests().Run()</pre></div></div>
             
         </li>
         

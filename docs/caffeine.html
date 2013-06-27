@@ -49,13 +49,6 @@
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
               <p><em>Copyright &copy; 2013 Ambrus Csaszar</em></p>
-<p>Provides a set of basic utilities for  </p>
-<ul>
-<li><a href="#exceptions">Exceptions</a></li>
-<li><a href="#assumptions">Assumptions</a></li>
-<li><a href="#numbers">Numbers</a></li>
-<li><a href="#unittesting">Unit Testing</a></li>
-</ul>
 
             </div>
             
@@ -68,8 +61,13 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p><a id="exceptions"/></p>
-<h2>EXCEPTIONS</h2>
+              <p>Provides a set of basic utilities for  </p>
+<ul>
+<li><a href="#exceptions">Exceptions</a></li>
+<li><a href="#assumptions">Assumptions</a></li>
+<li><a href="#numbers">Numbers</a></li>
+<li><a href="#unittesting">Unit Testing</a></li>
+</ul>
 
             </div>
             
@@ -82,12 +80,10 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <p>We create a base class for OO-style exceptions, since Error objects don&#39;t
-generally work cross-platform with <code>instanceof</code> checks.</p>
+              <p><a id="exceptions"/></p>
+<h2>EXCEPTIONS</h2>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">Exception</span> <span class="keyword">extends</span> <span class="title">Error</span></span></pre></div></div>
             
         </li>
         
@@ -98,14 +94,12 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <p>The constructor is necessary to make inheritance work properly.</p>
+              <p>We create a base class for OO-style exceptions, the avoids all the
+cross-platform inconsistencies and works with <code>instanceof</code> checks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    constructor: (msg) -&gt;
-        <span class="property">@name</span> = <span class="property">@constructor</span>.name
-        <span class="property">@message</span> = msg
-        Error.captureStackTrace(@, <span class="property">@constructor</span>)</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">Exception</span> <span class="keyword">extends</span> <span class="title">Error</span></span></pre></div></div>
             
         </li>
         
@@ -116,11 +110,20 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
-              <p><a id="assumptions"/></p>
-<h2>ASSUMPTIONS</h2>
-<p>Before executing a function it&#39;s often useful to validate its preconditions.</p>
+              <p>The constructor is necessary to make inheritance work properly.</p>
 
             </div>
+            
+            <div class="content"><div class='highlight'><pre>    constructor: (msg) -&gt;
+        <span class="property">@name</span> = <span class="property">@constructor</span>.name
+        <span class="property">@message</span> = msg
+        <span class="property">@stack</span> = (<span class="keyword">new</span> Error).stack
+        <span class="keyword">if</span> InstallTrigger?  <span class="comment"># Firefox</span>
+            <span class="property">@ChopStack</span> <span class="number">1</span>    <span class="comment"># Chop off the first line</span>
+        <span class="keyword">else</span> <span class="keyword">if</span> chrome? <span class="keyword">or</span> process?   <span class="comment"># V8/node</span>
+            <span class="property">@ChopStack</span> <span class="number">2</span>    <span class="comment"># Chop off the first two lines</span>
+        <span class="keyword">else</span>
+            <span class="property">@stack</span> = err.stack</pre></div></div>
             
         </li>
         
@@ -131,11 +134,13 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
-              <p>We provide a static class to encapsulate such checks.</p>
+              <p>Sometimes we need to chop lines off the top of the stack to get it to be
+correct</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">Assume</span></span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    ChopStack: (lines) -&gt;
+        <span class="keyword">if</span> <span class="property">@stack</span>?</pre></div></div>
             
         </li>
         
@@ -146,11 +151,15 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
-              <p>Failed assumptions throw <code>Assume.Exception</code></p>
+              <p>Chop extraneous lines from the stack trace</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="property">@Exception</span>: <span class="class"><span class="keyword">class</span> <span class="title">AssumeException</span> <span class="keyword">extends</span> <span class="title">Exception</span></span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>            i = <span class="number">0</span>
+            <span class="keyword">for</span> n <span class="keyword">in</span> [<span class="number">0.</span>..lines]
+                i = <span class="property">@stack</span>.indexOf(<span class="string">"\n"</span>, i) + <span class="number">1</span>
+            <span class="keyword">if</span> i &gt; <span class="number">0</span>
+                <span class="property">@stack</span> = <span class="property">@stack</span>.substring i</pre></div></div>
             
         </li>
         
@@ -161,15 +170,11 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
-              <p>The most basic assumption checks for truthiness.</p>
+              <p><a id="assumptions"/></p>
+<h2>ASSUMPTIONS</h2>
+<p>Before executing a function it&#39;s often useful to validate its preconditions.</p>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>    <span class="property">@True</span>: (val, msg) -&gt;
-        <span class="keyword">if</span> <span class="keyword">not</span> val
-            <span class="keyword">if</span> <span class="keyword">not</span> msg
-                msg = <span class="string">"Expected a truthy value - got '<span class="subst">#{val}</span>'"</span>
-            <span class="keyword">throw</span> <span class="keyword">new</span> Assume.Exception msg</pre></div></div>
             
         </li>
         
@@ -180,11 +185,11 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
-              <p>Assume a value exists.</p>
+              <p>Failed assumptions throw <code>Assume.Exception</code></p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="property">@Exists</span>: (val, msg) -&gt; Assume.True val <span class="string">"Expected a value - got '<span class="subst">#{val}</span>'"</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">AssumptionException</span> <span class="keyword">extends</span> <span class="title">Exception</span></span></pre></div></div>
             
         </li>
         
@@ -195,11 +200,11 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
-              <p>Assume two values are equal.</p>
+              <p>We provide a static class to encapsulate such checks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="property">@Equal</span>: (a, b, msg) -&gt; Assume.True a == b, <span class="string">"Expected '<span class="subst">#{a}</span>' == '<span class="subst">#{b}</span>'"</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">Assume</span></span></pre></div></div>
             
         </li>
         
@@ -210,12 +215,11 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
-              <p>The utility constructor calls the basic check, so you can write
-<code>Assume ...</code> instead of having to write <code>Assume.True ...</code></p>
+              <p>The utility constructor calls the basic check</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    constructor: (val, msg) -&gt; Assume.True val, msg</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    constructor: (val, msg) -&gt; Assume._check val, msg</pre></div></div>
             
         </li>
         
@@ -226,10 +230,11 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
-              <p><a id="numbers"/></p>
-<h2>NUMBERS</h2>
+              <p>Assume a value exists.</p>
 
             </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="property">@Exists</span>: (val, msg) -&gt; Assume._check val?, <span class="string">"Expected a value - got '<span class="subst">#{val}</span>'"</span></pre></div></div>
             
         </li>
         
@@ -239,6 +244,56 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Assume two values are equal.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="property">@Equal</span>: (a, b, msg) -&gt; Assume._check a == b, <span class="string">"Expected '<span class="subst">#{a}</span>' == '<span class="subst">#{b}</span>'"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>The utility method checks does the meat of the assumption checking work</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="property">@_check</span>: (val, msg) -&gt;
+        <span class="keyword">if</span> <span class="keyword">not</span> val
+            <span class="keyword">if</span> <span class="keyword">not</span> msg
+                msg = <span class="string">"Expected a truthy value - got '<span class="subst">#{val}</span>'"</span>
+            err = <span class="keyword">new</span> AssumptionException msg
+            err.ChopStack <span class="number">3</span>
+            <span class="keyword">throw</span> err</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p><a id="numbers"/></p>
+<h2>NUMBERS</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
               </div>
               <p>It&#39;s useful to know some basic things about numbers.</p>
 
@@ -250,56 +305,10 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
     <span class="property">@IsFloat</span>: (n) -&gt;
         <span class="keyword">return</span> <span class="keyword">not</span> Num.IsInt n
     <span class="property">@IsEven</span>: (n) -&gt;
-        Assume.True Num.IsInt(n), <span class="string">"Expected an Integer - got '<span class="subst">#{n}</span>'"</span>
+        Assume Num.IsInt(n), <span class="string">"Expected an Integer - got '<span class="subst">#{n}</span>'"</span>
         <span class="keyword">return</span> n % <span class="number">2</span> == <span class="number">0</span> 
     <span class="property">@IsOdd</span>: (n) -&gt;
         <span class="keyword">return</span> <span class="keyword">not</span> Num.IsEven n</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-14">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-14">&#182;</a>
-              </div>
-              <p><a id="unittesting"/></p>
-<h2>UNIT TESTING</h2>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-15">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-15">&#182;</a>
-              </div>
-              <p>Write unit tests by extending TestSuite with methods prefixed with <code>Test</code>...</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">TestSuite</span></span></pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-16">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-16">&#182;</a>
-              </div>
-              <p>Failed Assertions throw TestSuite.Exception</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    <span class="property">@Exception</span>: <span class="class"><span class="keyword">class</span> <span class="title">TestSuiteException</span> <span class="keyword">extends</span> <span class="title">Exception</span></span>
-        constructor: -&gt;
-            <span class="keyword">super</span></pre></div></div>
             
         </li>
         
@@ -310,14 +319,10 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
-              <p>We strip off the helper function portions of the stack trace</p>
+              <p><a id="unittesting"/></p>
+<h2>UNIT TESTING</h2>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>            stack_toks = <span class="property">@stack</span>.split(<span class="string">"\n"</span>)
-            <span class="keyword">if</span> stack_toks[<span class="number">1</span>].indexOf(<span class="string">"TestSuite.Assert"</span>) &gt; -<span class="number">1</span>
-                stack_toks.splice(<span class="number">1</span>, <span class="number">1</span>)
-                <span class="property">@stack</span> = stack_toks.join(<span class="string">"\n"</span>)</pre></div></div>
             
         </li>
         
@@ -328,15 +333,13 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
-              <p>The most basic Assertion tests for truthiness of <code>cond</code>.</p>
+              <p>Failed Assertions throw TestException</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    Assert: (cond, msg) -&gt;
-        <span class="keyword">if</span> <span class="keyword">not</span> cond
-            <span class="keyword">if</span> <span class="keyword">not</span> msg
-                msg = <span class="string">"Condition was '<span class="subst">#{cond}</span>'"</span>
-            <span class="keyword">throw</span> <span class="keyword">new</span> TestSuite.Exception(msg)</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">TestException</span> <span class="keyword">extends</span> <span class="title">Exception</span></span>
+    constructor: -&gt;
+        <span class="keyword">super</span></pre></div></div>
             
         </li>
         
@@ -347,20 +350,14 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-19">&#182;</a>
               </div>
-              <p>We can also assert that a <code>func</code> throws a particular class of Exception.</p>
+              <p>We strip off the helper function portions of the stack trace</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    AssertThrows: (exceptionClass, func) -&gt;
-        threw = <span class="literal">false</span>
-        <span class="keyword">try</span>
-            func()
-            <span class="keyword">throw</span> <span class="keyword">new</span> TestSuite.Exception(<span class="string">"Expected an exception"</span>)
-        <span class="keyword">catch</span> e
-            <span class="keyword">if</span> e <span class="keyword">instanceof</span> exceptionClass
-                threw = <span class="literal">true</span>
-        <span class="keyword">if</span> <span class="keyword">not</span> threw
-            <span class="keyword">throw</span> <span class="keyword">new</span> TestSuite.Exception(<span class="string">"Expected an exception"</span>)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>        stack_toks = <span class="property">@stack</span>.split(<span class="string">"\n"</span>)
+        <span class="keyword">if</span> stack_toks[<span class="number">1</span>].indexOf(<span class="string">"TestSuite.Assert"</span>) &gt; -<span class="number">1</span>
+            stack_toks.splice(<span class="number">1</span>, <span class="number">1</span>)
+            <span class="property">@stack</span> = stack_toks.join(<span class="string">"\n"</span>)</pre></div></div>
             
         </li>
         
@@ -371,27 +368,12 @@ generally work cross-platform with <code>instanceof</code> checks.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
-              <p>Execute the unit tests defined in this test suite and output results to
-the console.</p>
+              <p>Test suites generate an array of results, one for each test.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    Run: () -&gt;
-        <span class="keyword">for</span> k,v <span class="keyword">of</span> @
-            <span class="keyword">if</span> k.toLowerCase().lastIndexOf(<span class="string">"test"</span>, <span class="number">0</span>) == <span class="number">0</span>
-                name = <span class="string">"<span class="subst">#{@constructor.name}</span>.<span class="subst">#{k}</span>"</span>
-                <span class="keyword">if</span> v <span class="keyword">instanceof</span> Function
-                    <span class="keyword">try</span>
-                        v.bind(@)()
-                        console.log <span class="string">"ok     <span class="subst">#{name}</span>"</span>
-                    <span class="keyword">catch</span> e
-                        <span class="keyword">if</span> e <span class="keyword">instanceof</span> TestSuite.Exception
-                            console.log <span class="string">"FAILED <span class="subst">#{name}</span>"</span>
-                        <span class="keyword">else</span>
-                            console.log <span class="string">"ERROR  <span class="subst">#{name}</span>"</span>
-                        console.error e.stack
-                <span class="keyword">else</span>
-                    console.warn <span class="string">"!!!    <span class="subst">#{name}</span> is prefixed with 'test' but isn't a function. This is discouraged"</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">TestResult</span></span>
+    constructor: (<span class="property">@name</span>, <span class="property">@status</span>, <span class="property">@error</span>) -&gt;</pre></div></div>
             
         </li>
         
@@ -399,15 +381,175 @@ the console.</p>
         <li id="section-21">
             <div class="annotation">
               
-              <div class="pilwrap for-h2">
+              <div class="pilwrap ">
                 <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Write unit tests by extending TestSuite with methods prefixed with <code>Test</code>...</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">TestSuite</span></span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>The most basic Assertion tests for truthiness of <code>cond</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    Assert: (cond, msg) -&gt;
+        <span class="keyword">if</span> <span class="keyword">not</span> cond
+            <span class="keyword">if</span> <span class="keyword">not</span> msg
+                msg = <span class="string">"Condition was '<span class="subst">#{cond}</span>'"</span>
+            <span class="keyword">throw</span> <span class="keyword">new</span> TestException(msg)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>We can also assert that a <code>func</code> throws a particular class of Exception.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    AssertThrows: (exceptionClass, func) -&gt;
+        threw = <span class="literal">false</span>
+        <span class="keyword">try</span>
+            func()
+            <span class="keyword">throw</span> <span class="keyword">new</span> TestException(<span class="string">"Expected an exception"</span>)
+        <span class="keyword">catch</span> e
+            <span class="keyword">if</span> e <span class="keyword">instanceof</span> exceptionClass
+                threw = <span class="literal">true</span>
+        <span class="keyword">if</span> <span class="keyword">not</span> threw
+            <span class="keyword">throw</span> <span class="keyword">new</span> TestException(<span class="string">"Expected an exception"</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>By default, we log results to the console.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    LogToConsole: (result) -&gt;
+        nspace = <span class="number">8</span> - result.status.length
+        msg = result.status
+        <span class="keyword">for</span> i <span class="keyword">in</span> [<span class="number">0.</span>..nspace]
+            msg += <span class="string">" "</span>
+        msg += result.name
+
+        <span class="keyword">if</span> result.error?
+            console.error msg
+            console.error result.error.stack
+        <span class="keyword">else</span>
+            console.log msg</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>We provide a way to get the names of the test methods to facilitate
+creating in-browser unit tests.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    GetTestMethods: () -&gt;
+        methods = []
+        <span class="keyword">for</span> k,v <span class="keyword">of</span> <span class="keyword">this</span>
+            <span class="keyword">if</span> k.toLowerCase().lastIndexOf(<span class="string">"test"</span>, <span class="number">0</span>) == <span class="number">0</span>
+                name = <span class="string">"<span class="subst">#{@constructor.name}</span>.<span class="subst">#{k}</span>"</span>
+                <span class="keyword">if</span> v <span class="keyword">instanceof</span> Function
+                    methods.push { name: name, func: v.bind(<span class="keyword">this</span>) }
+                <span class="keyword">else</span>
+                    console.warn <span class="string">"!!! <span class="subst">#{name}</span> is prefixed with 'test' but isn't a function. This is discouraged"</span>
+        methods</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>We can run the methods provided by <code>GetTestMethods</code>, and call a handler
+with results.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    RunTestMethods: (methods, onResult) -&gt;
+        results = []
+        <span class="keyword">for</span> m <span class="keyword">in</span> methods
+            res = <span class="keyword">new</span> TestResult m.name
+            <span class="keyword">try</span>
+                m.func()
+                res.status = <span class="string">"ok"</span>
+            <span class="keyword">catch</span> e
+                <span class="keyword">if</span> e <span class="keyword">instanceof</span> TestException
+                    res.status = <span class="string">"failed"</span>
+                <span class="keyword">else</span>
+                    res.status = <span class="string">"error"</span>
+                res.error = e
+            onResult? res
+        results</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>Execute the unit tests defined in this test suite, return the results,
+and print the output to the console by default.
+<code>onResult</code> takes a <code>TestResult</code> object</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    Run: (onResult = <span class="property">@LogToConsole</span>) -&gt;
+        methods = <span class="property">@GetTestMethods</span>()
+        <span class="property">@RunTestMethods</span> methods, onResult</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
               <h2>Public API</h2>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>
-module.exports = Caffeine = { Assume, Exception, Num, TestSuite }</pre></div></div>
+module.exports = Caffeine = { 
+    Assume, AssumptionException, Exception, Num, TestException, TestSuite
+}</pre></div></div>
             
         </li>
         

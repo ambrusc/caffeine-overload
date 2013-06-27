@@ -4,7 +4,7 @@
 # Tests for caffeine.coffee
 #
 
-caff = require "./caffeine"
+caff = require "./caffeine.coffee"
 
 Exception = caff.Exception
 Assume = caff.Assume
@@ -19,7 +19,7 @@ class TestTests extends caff.TestSuite
     Testtoo: []
     teStcar: {}
 
-class Tests extends caff.TestSuite
+class CaffeineTests extends caff.TestSuite
     # Validate Exception inheritance
     TestExceptions: () ->
         @Assert Exception, "Must have Exception class"
@@ -43,4 +43,9 @@ class Tests extends caff.TestSuite
         for n in [-1232543543.999,-1.00000000001,-1.1,1.1,1.0000001,1234939429.999]
             @Assert not Num.IsInt n
 
-new Tests().Run()
+# Export the tests publicly
+module.exports = { CaffeineTests }
+
+# And run them if we're in Node
+if not window?
+    new CaffeineTests().Run()
